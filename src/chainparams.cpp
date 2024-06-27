@@ -81,7 +81,7 @@ static CBlock CreateDevNetGenesisBlock(const uint256 &prevBlockHash, const std::
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "Super cool test net for AIPG with masternodes yippii";
+    const char* pszTimestamp = "Super cool test net for algos with masternodes yippii";
     const CScript genesisOutputScript = CScript() << ParseHex("04f529c0007624ffa8c565cf9fbbcf406701b2a279a3ef06232069429b3c8c9fe8cac1b4062b418cdd4e4e2ea72ddbdf935a8f30fc3ca04d1844f6963332df8581") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
@@ -251,12 +251,36 @@ public:
         m_assumed_blockchain_size = 45;
         m_assumed_chain_state_size = 1;
 
-        uint32_t nGenesisTime = 1701429301;	
+        uint32_t nGenesisTime = 1719499850;	
 
-        genesis = CreateGenesisBlock(nGenesisTime, 6035, 0x1e0ffff0, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1719499850, 3, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x00000a6a6679f9865f9d545adb58107a4eae437847f0e019b184263fe526185e"));
+        // calculate mainnet genesis block
+        //consensus.hashGenesisBlock = uint256S("0x00");
+        if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
+		std::cout << std::string("Calculating mainnet genesis block...\n");
+            arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
+            uint256 hash;
+            genesis.nNonce = 0;
+            while (UintToArith256(genesis.GetHash()) > hashTarget)
+            {
+                ++genesis.nNonce;
+                if (genesis.nNonce == 0)
+                {
+                    ++genesis.nTime;
+                }
+            }
+            std::cout << "Genesis block found!\n";
+            std::cout << "nonce: " << genesis.nNonce << "\n";
+            std::cout << "time: " << genesis.nTime << "\n";
+            std::cout << "blockhash: " << genesis.GetHash().ToString().c_str() << "\n";
+            std::cout << "merklehash: " << genesis.hashMerkleRoot.ToString().c_str() << "\n";
+        }
+
+        consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0x4c193f8e5c28019c5e870d9484c0e3dce17e9d589076fd2c7f1fd70c5a931939"));
         assert(genesis.hashMerkleRoot == uint256S("0x7b3275a7591ad45b1964b093865d35a674b3a3d3f560363dac4bcb302851cedf"));
+
 
         // Note that of those which support the service bits prefix, most only support a subset of
         // possible options.
