@@ -19,8 +19,8 @@
 
 #include <assert.h>
 // Todo: remove these lol
-extern double algoHashTotal[16];
-extern int algoHashHits[16];
+extern double algoHashTotal[6];
+extern int algoHashHits[6];
 
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
@@ -232,7 +232,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000000000"); // 2029000
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x00000a6a6679f9865f9d545adb58107a4eae437847f0e019b184263fe526185e"); // 0
+        consensus.defaultAssumeValid = uint256S("0x01b84c98bcea61f51269bb1d2d8c3ffbf32c70d609799a645e7cacf6de79b1f5"); // 0
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -253,10 +253,10 @@ public:
 
         uint32_t nGenesisTime = 1719499850;	
 
-        genesis = CreateGenesisBlock(1719499850, 3, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(nGenesisTime, 34796227, 0x1e0ffff0, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         // calculate mainnet genesis block
-        //consensus.hashGenesisBlock = uint256S("0x00");
+        consensus.hashGenesisBlock = uint256S("0x00");
         if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
 		std::cout << std::string("Calculating mainnet genesis block...\n");
             arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
@@ -278,8 +278,8 @@ public:
         }
 
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x4c193f8e5c28019c5e870d9484c0e3dce17e9d589076fd2c7f1fd70c5a931939"));
-        assert(genesis.hashMerkleRoot == uint256S("0x7b3275a7591ad45b1964b093865d35a674b3a3d3f560363dac4bcb302851cedf"));
+        assert(consensus.hashGenesisBlock == uint256S("0x0"));
+        assert(genesis.hashMerkleRoot == uint256S("0x98b2d9604adfdbb19ad7f08ecd12da7db4fca314da7b1a83210083f33f76d542"));
 
 
         // Note that of those which support the service bits prefix, most only support a subset of
@@ -297,7 +297,7 @@ public:
 
         // Dash BIP44 coin type is '2686'
         nExtCoinType = 2686;
-
+    
         vFixedSeeds = std::vector<uint8_t>(std::begin(chainparams_seed_main), std::end(chainparams_seed_main));
 
         // long living quorum params
@@ -329,7 +329,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("0x00000a6a6679f9865f9d545adb58107a4eae437847f0e019b184263fe526185e")},
+                {0, uint256S("0x01b84c98bcea61f51269bb1d2d8c3ffbf32c70d609799a645e7cacf6de79b1f5")},
             }
         };
 
@@ -339,7 +339,7 @@ public:
 
         // getchaintxstats 17280 0000000000000020d5e38b6aef5bc8e430029444d7977b46f710c7d281ef1281
         chainTxData = ChainTxData{
-                1701429301, // * UNIX timestamp of last known number of transactions (Block 1969000)
+                1719506707, // * UNIX timestamp of last known number of transactions (Block 1969000)
                 0,   // * total number of transactions between genesis and that timestamp
                             //   (the tx=... number in the ChainStateFlushed debug.log lines)
                 0.0,      // * estimated number of transactions per second after that timestamp
@@ -436,11 +436,38 @@ public:
         m_assumed_chain_state_size = 1;
 
         uint32_t nGenesisTime = 1701429304;	
-
-        genesis = CreateGenesisBlock(nGenesisTime, 1062793UL, 0x1e0ffff0, 1, 50 * COIN);
+        
+        genesis = CreateGenesisBlock(1718572411UL, 1264464UL, 0x1e0ffff0, 1, 200 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x00000b64626f365c9da834a6f5f37da3a46202af70212344851b62c7684fcad0"));
-        assert(genesis.hashMerkleRoot == uint256S("0x7b3275a7591ad45b1964b093865d35a674b3a3d3f560363dac4bcb302851cedf"));
+        // calculate testnet genesis block
+        //consensus.hashGenesisBlock = uint256S("0x00");
+        if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
+		std::cout << std::string("Calculating testnet genesis block...\n");
+            arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
+            uint256 hash;
+            genesis.nNonce = 0;
+            while (UintToArith256(genesis.GetHash()) > hashTarget)
+            {
+                ++genesis.nNonce;
+                if (genesis.nNonce == 0)
+                {
+                    ++genesis.nTime;
+                }
+            }
+            std::cout << "Genesis block found!\n";
+            std::cout << "nonce: " << genesis.nNonce << "\n";
+            std::cout << "time: " << genesis.nTime << "\n";
+            std::cout << "blockhash: " << genesis.GetHash().ToString().c_str() << "\n";
+            std::cout << "merklehash: " << genesis.hashMerkleRoot.ToString().c_str() << "\n";
+        }
+        assert(consensus.hashGenesisBlock == uint256S("0x000009f2535de757970a8326b20fc7f424aadee8d76557c51a18e8663ad00281"));
+        assert(genesis.hashMerkleRoot == uint256S("0xcfd42b67f714ea40333ceaf7a7259f795cf42f2560ae4d363bcd9bcc6affea81"));
+
+        // Print out the hash values for debugging
+        // std::cout << "Generated consensus.hashGenesisBlock: " << consensus.hashGenesisBlock.GetHex() << std::endl;
+        // std::cout << "Expected consensus.hashGenesisBlock: 98b2d9604adfdbb19ad7f08ecd12da7db4fca314da7b1a83210083f33f76d542" << std::endl;
+        // std::cout << "Generated genesis.hashMerkleRoot: " << genesis.hashMerkleRoot.GetHex() << std::endl;
+        // std::cout << "Expected genesis.hashMerkleRoot: 0381fb6770d9d7f08d85990d57deb26e4d725e7b83bb73c7fb41cabe2e0b62a8" << std::endl;
 
         vFixedSeeds.clear();
         vFixedSeeds = std::vector<uint8_t>(std::begin(chainparams_seed_test), std::end(chainparams_seed_test));
@@ -853,36 +880,21 @@ public:
         UpdateDIP3ParametersFromArgs(args);
         UpdateDIP8ParametersFromArgs(args);
         UpdateBudgetParametersFromArgs(args);
+        
+        uint32_t nGenesisTime = 1701429804;	
 
-
-        genesis = CreateGenesisBlock(1701429388, 3, 0x207fffff, 1, 50 * COIN);
+        // Create the genesis block
+        genesis = CreateGenesisBlock(nGenesisTime, 1, 0x1e00fff0, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        // calculate mainnet genesis block
-        //consensus.hashGenesisBlock = uint256S("0x00");
-        if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
-		std::cout << std::string("Calculating mainnet genesis block...\n");
-            arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
-            uint256 hash;
-            genesis.nNonce = 0;
-            while (UintToArith256(genesis.GetHash()) > hashTarget)
-            {
-                ++genesis.nNonce;
-                if (genesis.nNonce == 0)
-                {
-                    ++genesis.nTime;
-                }
-            }
-            std::cout << "Genesis block found!\n";
-            std::cout << "nonce: " << genesis.nNonce << "\n";
-            std::cout << "time: " << genesis.nTime << "\n";
-            std::cout << "blockhash: " << genesis.GetHash().ToString().c_str() << "\n";
-            std::cout << "merklehash: " << genesis.hashMerkleRoot.ToString().c_str() << "\n";
-        }
 
-        consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x4c193f8e5c28019c5e870d9484c0e3dce17e9d589076fd2c7f1fd70c5a931939"));
-        assert(genesis.hashMerkleRoot == uint256S("0x7b3275a7591ad45b1964b093865d35a674b3a3d3f560363dac4bcb302851cedf"));
+        // Print out the hash values for debugging
+        // std::cout << "Generated consensus.hashGenesisBlock: " << consensus.hashGenesisBlock.GetHex() << std::endl;
+        // std::cout << "Generated genesis.hashMerkleRoot: " << genesis.hashMerkleRoot.GetHex() << std::endl;
 
+
+        // Assertions to verify the correctness
+        assert(consensus.hashGenesisBlock == uint256S("1d8326e288328124d4422c636652f66c586db238e8b012e6c95dcfb3bc676007"));
+        assert(genesis.hashMerkleRoot == uint256S("98b2d9604adfdbb19ad7f08ecd12da7db4fca314da7b1a83210083f33f76d542"));
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
 

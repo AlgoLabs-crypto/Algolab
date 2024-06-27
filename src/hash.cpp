@@ -8,8 +8,8 @@
 #include <crypto/hmac_sha512.h>
 
 //todo: remove these
-double algoHashTotal[16];
-int algoHashHits[16];
+double algoHashTotal[6];
+int algoHashHits[6];
 
 inline uint32_t ROTL32(uint32_t x, int8_t r)
 {
