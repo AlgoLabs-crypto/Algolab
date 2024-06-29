@@ -9,6 +9,8 @@
 #include <chain.h>
 #include <primitives/block.h>
 #include <uint256.h>
+#include <logging.h>
+#include <logging/timer.h>
 
 #include <math.h>
 
@@ -233,21 +235,33 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
     return bnNew.GetCompact();
 }
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& consensusParams)
 {
+    // Convert nBits to a target value
+    arith_uint256 target;
     bool fNegative;
     bool fOverflow;
-    arith_uint256 bnTarget;
+    target.SetCompact(nBits, &fNegative, &fOverflow);
 
-    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+    LogPrintf("DEBUG: CheckProofOfWork - Target: %s\n", target.ToString());
+    LogPrintf("DEBUG: CheckProofOfWork - Hash: %s\n", hash.ToString());
+    LogPrintf("DEBUG: CheckProofOfWork - nBits: %08x\n", nBits);
+    LogPrintf("DEBUG: CheckProofOfWork - fNegative: %d\n", fNegative);
+    LogPrintf("DEBUG: CheckProofOfWork - fOverflow: %d\n", fOverflow);
 
     // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+    if (fNegative || target == 0 || fOverflow || target > UintToArith256(consensusParams.powLimit)) {
+        LogPrintf("DEBUG: CheckProofOfWork - Range check failed\n");
         return false;
+    }
 
     // Check proof of work matches claimed amount
-    if (UintToArith256(hash) > bnTarget)
+    if (UintToArith256(hash) > target) {
+        LogPrintf("DEBUG: CheckProofOfWork - Hash does not meet target\n");
         return false;
+    }
 
+    LogPrintf("DEBUG: CheckProofOfWork - Proof of work passed\n");
     return true;
 }
+

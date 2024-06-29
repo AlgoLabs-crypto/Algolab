@@ -3770,8 +3770,18 @@ static bool FindUndoPos(BlockValidationState &state, int nFile, FlatFilePos &pos
 static bool CheckBlockHeader(const CBlockHeader& block, const uint256& hash, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(hash, block.nBits, consensusParams))
+    if (fCheckPOW && !CheckProofOfWork(hash, block.nBits, consensusParams)) {
+        LogPrintf("DEBUG: CheckBlockHeader() - Proof of work check failed.\n");
+        LogPrintf("DEBUG: Block hash: %s\n", hash.ToString());
+        LogPrintf("DEBUG: Expected hash: %s\n", block.GetHash().ToString());
+        LogPrintf("DEBUG: Block nBits: %08x\n", block.nBits);
+        LogPrintf("DEBUG: Block previous hash: %s\n", block.hashPrevBlock.ToString());
+        LogPrintf("DEBUG: Block time: %d\n", block.nTime);
+        LogPrintf("DEBUG: Block nonce: %d\n", block.nNonce);
+        LogPrintf("DEBUG: Block merkle root: %s\n", block.hashMerkleRoot.ToString());
+        LogPrintf("DEBUG: fCheckPOW: %d\n", fCheckPOW);
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
+    }
 
     // Check DevNet
     if (!consensusParams.hashDevnetGenesisBlock.IsNull() &&
@@ -3783,6 +3793,9 @@ static bool CheckBlockHeader(const CBlockHeader& block, const uint256& hash, Blo
 
     return true;
 }
+
+
+
 
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot)
 {
