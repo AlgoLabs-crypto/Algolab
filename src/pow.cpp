@@ -252,18 +252,23 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     // Check range
     if (fNegative || target == 0 || fOverflow || target > UintToArith256(consensusParams.powLimit)) {
         LogPrintf("DEBUG: CheckProofOfWork - Range check failed\n");
-        return false;
+        return true;
     }
 
+    // Convert hash and target to arith_uint256 for comparison
+    arith_uint256 arithHash = UintToArith256(hash);
+
     // Check proof of work matches claimed amount
-    if (UintToArith256(hash) > target) {
+    if (arithHash > target) {
         LogPrintf("DEBUG: CheckProofOfWork - Hash does not meet target\n");
         LogPrintf("DEBUG: CheckProofOfWork - Hash: %s\n", hash.ToString());
         LogPrintf("DEBUG: CheckProofOfWork - Target: %s\n", target.ToString());
-        return true;
+        LogPrintf("DEBUG: CheckProofOfWork - Result: %s\n", (arithHash > target) ? "Hash is greater than Target" : "Hash is less than or equal to Target");
+        return false;
     }
 
     LogPrintf("DEBUG: CheckProofOfWork - Proof of work passed\n");
     return true;
 }
+
 

@@ -303,19 +303,19 @@ inline int GetHashSelection(const uint256 PrevBlockHash, int index) {
 template<typename T1>
 inline uint256 HashX11(const T1 pbegin, const T1 pend)
 {
-    sph_jh512_context        ctx_jh;
+    sph_blake512_context     ctx_blake;
     sph_keccak512_context    ctx_keccak;
     sph_cubehash512_context  ctx_cubehash;
+    sph_echo512_context      ctx_echo;
+    sph_luffa512_context     ctx_luffa;
     sph_whirlpool_context    ctx_whirlpool;
-    sph_sha512_context       ctx_sha512;
-    sph_tiger_context        ctx_tiger;  // Define the Tiger context
     static unsigned char pblank[1];
 
-    uint512 hash[6];  // Update the size of the hash array
+    uint512 hash[7];  // Update the size of the hash array
 
-    sph_jh512_init(&ctx_jh);
-    sph_jh512(&ctx_jh, (pbegin == pend ? pblank : static_cast<const void*>(&pbegin[0])), (pend - pbegin) * sizeof(pbegin[0]));
-    sph_jh512_close(&ctx_jh, static_cast<void*>(&hash[0]));
+    sph_blake512_init(&ctx_blake);
+    sph_blake512 (&ctx_blake, (pbegin == pend ? pblank : static_cast<const void*>(&pbegin[0])), (pend - pbegin) * sizeof(pbegin[0]));
+    sph_blake512_close(&ctx_blake, static_cast<void*>(&hash[0]));
 
     sph_keccak512_init(&ctx_keccak);
     sph_keccak512(&ctx_keccak, static_cast<const void*>(&hash[0]), 64);
@@ -325,23 +325,35 @@ inline uint256 HashX11(const T1 pbegin, const T1 pend)
     sph_cubehash512(&ctx_cubehash, static_cast<const void*>(&hash[1]), 64);
     sph_cubehash512_close(&ctx_cubehash, static_cast<void*>(&hash[2]));
 
+    // sph_whirlpool_init(&ctx_whirlpool);
+    // sph_whirlpool(&ctx_whirlpool, static_cast<const void*>(&hash[2]), 64);
+    // sph_whirlpool_close(&ctx_whirlpool, static_cast<void*>(&hash[3]));
+
+    sph_echo512_init(&ctx_echo);
+    sph_echo512 (&ctx_echo, static_cast<const void*>(&hash[2]), 64);
+    sph_echo512_close(&ctx_echo, static_cast<void*>(&hash[3]));
+
     sph_whirlpool_init(&ctx_whirlpool);
-    sph_whirlpool(&ctx_whirlpool, static_cast<const void*>(&hash[2]), 64);
-    sph_whirlpool_close(&ctx_whirlpool, static_cast<void*>(&hash[3]));
+    sph_whirlpool(&ctx_whirlpool, static_cast<const void*>(&hash[3]), 64);
+    sph_whirlpool_close(&ctx_whirlpool, static_cast<void*>(&hash[4]));
 
-    sph_sha512_init(&ctx_sha512);
-    sph_sha512(&ctx_sha512, static_cast<const void*>(&hash[3]), 64);
-    sph_sha512_close(&ctx_sha512, static_cast<void*>(&hash[4]));
+    sph_luffa512_init(&ctx_luffa);
+    sph_luffa512 (&ctx_luffa, static_cast<void*>(&hash[4]), 64);
+    sph_luffa512_close(&ctx_luffa, static_cast<void*>(&hash[5]));
 
-    sph_tiger_init(&ctx_tiger);  // Initialize Tiger context
-    sph_tiger(&ctx_tiger, static_cast<const void*>(&hash[4]), 64);  // Apply Tiger hash
-    sph_tiger_close(&ctx_tiger, static_cast<void*>(&hash[5]));  // Close Tiger context
+    sph_keccak512_init(&ctx_keccak);
+    sph_keccak512(&ctx_keccak, static_cast<const void*>(&hash[5]), 64);
+    sph_keccak512_close(&ctx_keccak, static_cast<void*>(&hash[6]));
 
-    sph_sha512_init(&ctx_sha512);  // Initialize SHA512 context again for final hash
-    sph_sha512(&ctx_sha512, static_cast<const void*>(&hash[5]), 64);  // Apply SHA512 hash to Tiger output
-    sph_sha512_close(&ctx_sha512, static_cast<void*>(&hash[5]));  // Close SHA512 context
+    // sph_tiger_init(&ctx_tiger);  // Initialize Tiger context
+    // sph_tiger(&ctx_tiger, static_cast<const void*>(&hash[4]), 64);  // Apply Tiger hash
+    // sph_tiger_close(&ctx_tiger, static_cast<void*>(&hash[5]));  // Close Tiger context
 
-    return hash[5].trim256();
+    // sph_sha512_init(&ctx_sha512);  // Initialize SHA512 context again for final hash
+    // sph_sha512(&ctx_sha512, static_cast<const void*>(&hash[5]), 64);  // Apply SHA512 hash to Tiger output
+    // sph_sha512_close(&ctx_sha512, static_cast<void*>(&hash[5]));  // Close SHA512 context
+
+    return hash[6].trim256();
 }
 
 
